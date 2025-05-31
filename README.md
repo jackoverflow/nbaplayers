@@ -28,7 +28,7 @@ Make sure you have the following installed on your machine:
    - **Lastname**
    - **DateOfBirth**
    - **Team**
-   - **Required**
+   - **Retired**
    - **Injured**
 
 2. Fill in the rows with the relevant data for each NBA player.
