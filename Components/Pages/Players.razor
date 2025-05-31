@@ -1,0 +1,63 @@
+@page "/players"
+@using nbaplayers.Models
+@inject NBAPlayerService PlayerService
+
+<PageTitle>NBA Players</PageTitle>
+
+<MudText Typo="Typo.h3" GutterBottom="true">NBA Players Database</MudText>
+
+<MudButton Variant="Variant.Filled" Color="Color.Primary" @onclick="LoadPlayers" Class="mb-4">
+    Refresh Data
+</MudButton>
+
+@if (players == null)
+{
+    <MudProgressCircular Indeterminate="true" />
+}
+else if (players.Count == 0)
+{
+    <MudAlert Severity="Severity.Info">No players found in the database.</MudAlert>
+}
+else
+{
+    <MudTable Items="@players" Hover="true" Striped="true">
+        <HeaderContent>
+            <MudTh>ID</MudTh>
+            <MudTh>First Name</MudTh>
+            <MudTh>Last Name</MudTh>
+            <MudTh>Date of Birth</MudTh>
+            <MudTh>Team</MudTh>
+            <MudTh>Retired</MudTh>
+            <MudTh>Injured</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="ID">@context.Id</MudTd>
+            <MudTd DataLabel="First Name">@context.FirstName</MudTd>
+            <MudTd DataLabel="Last Name">@context.LastName</MudTd>
+            <MudTd DataLabel="Date of Birth">@context.DateOfBirth.ToString("yyyy-MM-dd")</MudTd>
+            <MudTd DataLabel="Team">@context.Team</MudTd>
+            <MudTd DataLabel="Retired">
+                <MudIcon Icon="@(context.Retired ? Icons.Material.Filled.Check : Icons.Material.Filled.Close)" 
+                         Color="@(context.Retired ? Color.Success : Color.Error)" />
+            </MudTd>
+            <MudTd DataLabel="Injured">
+                <MudIcon Icon="@(context.Injured ? Icons.Material.Filled.Check : Icons.Material.Filled.Close)" 
+                         Color="@(context.Injured ? Color.Error : Color.Success)" />
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+
+@code {
+    private List<NBAPlayer>? players;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPlayers();
+    }
+
+    private async Task LoadPlayers()
+    {
+        players = await PlayerService.GetAllPlayersAsync();
+    }
+} 

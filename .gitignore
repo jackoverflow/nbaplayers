@@ -1,0 +1,28 @@
+# Build directories
+bin/
+obj/
+
+# User-specific files
+*.suo
+*.user
+*.userprefs
+
+# Visual Studio Code settings
+.vscode/
+
+# Rider settings
+.idea/
+
+# NuGet packages
+*.nupkg
+packages/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# MudBlazor specific
+wwwroot/lib/

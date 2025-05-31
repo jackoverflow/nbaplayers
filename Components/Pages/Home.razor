@@ -1,0 +1,143 @@
+﻿@page "/"
+@using nbaplayers.Models
+
+@inject ISnackbar Snackbar
+@inject NBAPlayerService PlayerService
+
+<PageTitle>Upload PDF</PageTitle>
+
+<MudText Typo="Typo.h3" GutterBottom="true">Upload your PDF files</MudText>
+
+<MudAlert Severity="Severity.Info" Class="mb-4">
+    Upload a PDF file containing NBA player data. Each line should contain player information in the following format:
+    <br/><strong>FirstName LastName YYYY-MM-DD TeamName Yes/No Yes/No</strong>
+    <br/>Example: <em>Jimmy Butler 1989-09-14 Miami Heat No No</em>
+    <br/>The last two values represent Retired and Injured status respectively.
+</MudAlert>
+
+<MudFileUpload T="IBrowserFile" Accept=".pdf" FilesChanged="@(async file => await UploadFile(file))" MaximumFileCount="100">
+    <ActivatorContent>
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.CloudUpload">
+            Only .pdf files
+        </MudButton>
+    </ActivatorContent>
+</MudFileUpload>
+
+<MudDivider Class="my-4" />
+
+<MudText Typo="Typo.h4" GutterBottom="true">NBA Players Database</MudText>
+
+<MudButton Variant="Variant.Outlined" 
+           Color="Color.Secondary" 
+           @onclick="LoadPlayers" 
+           StartIcon="@Icons.Material.Filled.Refresh"
+           Class="mb-3">
+    Refresh Data
+</MudButton>
+
+@if (players == null)
+{
+    <MudProgressCircular Indeterminate="true" />
+}
+else if (players.Count == 0)
+{
+    <MudAlert Severity="Severity.Info">No players found in the database.</MudAlert>
+}
+else
+{
+    <MudDataGrid Items="@players" Hover="true" Striped="true" Filterable="true" SortMode="SortMode.Multiple">
+        <Columns>
+            <PropertyColumn Property="x => x.Id" Title="ID" />
+            <PropertyColumn Property="x => x.FirstName" Title="First Name" />
+            <PropertyColumn Property="x => x.LastName" Title="Last Name" />
+            <PropertyColumn Property="x => x.DateOfBirth" Title="Date of Birth" Format="yyyy-MM-dd" />
+            <PropertyColumn Property="x => x.Team" Title="Team" />
+            <TemplateColumn Title="Retired">
+                <CellTemplate>
+                    <MudIcon Icon="@(context.Item.Retired ? Icons.Material.Filled.Check : Icons.Material.Filled.Close)" 
+                             Color="@(context.Item.Retired ? Color.Success : Color.Error)" />
+                </CellTemplate>
+            </TemplateColumn>
+            <TemplateColumn Title="Injured">
+                <CellTemplate>
+                    <MudIcon Icon="@(context.Item.Injured ? Icons.Material.Filled.Check : Icons.Material.Filled.Close)" 
+                             Color="@(context.Item.Injured ? Color.Error : Color.Success)" />
+                </CellTemplate>
+            </TemplateColumn>
+        </Columns>
+    </MudDataGrid>
+    
+    <MudText Typo="Typo.body2" Class="mt-3">
+        Total Players: @players.Count
+    </MudText>
+}
+
+@code {
+    private List<NBAPlayer>? players;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPlayers();
+    }
+
+    private async Task UploadFile(IBrowserFile file)
+    {
+        try
+        {
+            Snackbar.Add("Processing PDF...", Severity.Info);
+            
+            using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10MB limit
+            var playersAdded = await PlayerService.UploadAndSavePlayersAsync(stream);
+            
+            Snackbar.Add($"PDF uploaded successfully! {playersAdded} players added to database.", Severity.Success);
+            
+            // Refresh the data grid after successful upload
+            await LoadPlayers();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error uploading PDF: {ex.Message}", Severity.Error);
+            Console.WriteLine($"Upload error: {ex}");
+        }
+    }
+
+    private async Task LoadPlayers()
+    {
+        try
+        {
+            players = await PlayerService.GetAllPlayersAsync();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading players: {ex.Message}", Severity.Error);
+            Console.WriteLine($"Load error: {ex}");
+        }
+    }
+
+    private async Task AddTestData()
+    {
+        try
+        {
+            var testPlayer = new NBAPlayer(
+                firstName: "LeBron",
+                lastName: "James",
+                dateOfBirth: new DateTime(1984, 12, 30),
+                team: "Los Angeles Lakers",
+                retired: false,
+                injured: false
+            );
+
+            var count = await PlayerService.AddPlayerAsync(testPlayer);
+            Snackbar.Add("Test player added successfully!", Severity.Success);
+            
+            // Refresh the data grid after adding test data
+            await LoadPlayers();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error adding test data: {ex.Message}", Severity.Error);
+        }
+    }
+}
