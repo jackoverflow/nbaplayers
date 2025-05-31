@@ -17,7 +17,7 @@ Welcome to the NBA Players Management App! This application allows you to manage
 
 Make sure you have the following installed on your machine:
 
-- [.NET SDK](https://dotnet.microsoft.com/download) (version 5.0 or later)
+- [.NET SDK](https://dotnet.microsoft.com/download) (version 9.0)
 - A code editor (e.g., Visual Studio, Visual Studio Code)
 - [PostgreSQL](https://www.enterprisedb.com/downloads/postgres-postgresql-downloads) (for database management)
 
